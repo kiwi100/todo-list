@@ -60,23 +60,8 @@ function App() {
     }
   }, [categories, categoryId]);
 
-  useEffect(() => {
-    if ("Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission();
-    }
-  }, []);
-
-  function showDeadlineNotification(todo) {
-    if ("Notification" in window && Notification.permission === "granted") {
-      new Notification(`任务将截止: ${todo.title}`, {
-        body: `截止时间：${new Date(todo.dueDate).toLocaleString()}`,
-        icon: "/favicon.ico",
-      });
-    } else {
-      window.alert(`【任务提醒】\n待办『${todo.title}』将于${new Date(todo.dueDate).toLocaleString()}截止！`);
-    }
-  }
-
+  // 60s检查一次
+  // 只弹窗5min内到期及未提醒过的list
   useEffect(() => {
     const interval = setInterval(() => {
       const now = Date.now();
@@ -89,7 +74,7 @@ function App() {
           const due = new Date(todo.dueDate).getTime();
           const diff = due - now;
           if (diff <= 5*60*1000 && diff > 0) {
-            showDeadlineNotification(todo);
+            window.alert(`【任务提醒！！！】\n待办『${todo.title}』将于${new Date(todo.dueDate).toLocaleString()}截止！唔好再拖啦`);
             remindedIdsRef.current.add(todo.id);
           }
         }

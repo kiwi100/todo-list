@@ -12,9 +12,15 @@ const formatDueDate = (value) => {
 };
 
 function TodoItem({ todo, categoryLabel, onToggle, onDelete }) {
+  const now = Date.now();
+  let expired = false;
+  if (todo.dueDate && !todo.completed) {
+    const due = new Date(todo.dueDate).getTime();
+    expired = !Number.isNaN(due) && due < now;
+  }
   return (
     <article
-      className={`todo-item ${todo.completed ? 'completed' : ''}`}
+      className={`todo-item${todo.completed ? ' completed' : ''}${expired ? ' expired' : ''}`}
       data-priority={todo.priority}
     >
       <div className="todo-content">

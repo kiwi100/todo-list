@@ -387,6 +387,20 @@
   background-color: #f0fff4;
 }
 
+.todo-item.expired {
+  background: #f3f4f6;
+  border-color: #e7e7e7;
+}
+.todo-item.expired h2,
+.todo-item.expired p,
+.todo-item.expired .todo-meta span {
+  color: #a3a3a3 !important;
+}
+.todo-item.expired .priority-chip {
+  background: #e5e7eb;
+  color: #a3a3a3;
+}
+
 .todo-headline {
   display: flex;
   align-items: center;
