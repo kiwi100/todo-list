@@ -132,7 +132,8 @@ function App() {
     };
 
     setCategories((prev) => [...prev, newCategory]);
-    setCategoryId(newCategory.id);
+    // 默认不变
+    setCategoryId((current) => (current ? current : newCategory.id));
     setNewCategoryName('');
   };
 
