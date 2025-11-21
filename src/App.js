@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import TodoItem from './components/TodoItem';
 import {
@@ -6,13 +6,28 @@ import {
   PRIORITY_OPTIONS,
   PRIORITY_RANK,
 } from './constants';
+import {
+  loadSortMode,
+  loadTodos,
+  saveSortMode,
+  saveTodos,
+} from './storage';
 
 function App() {
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState(() => loadTodos());
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState(DEFAULT_PRIORITY);
-  const [sortOrder, setSortOrder] = useState('desc');
+  // time-desc | time-asc | priority-desc | priority-asc
+  const [sortMode, setSortMode] = useState(() => loadSortMode('time-desc'));
+
+  useEffect(() => {
+    saveTodos(todos);
+  }, [todos]);
+
+  useEffect(() => {
+    saveSortMode(sortMode);
+  }, [sortMode]);
 
   const handleAddTodo = (event) => {
     event.preventDefault();
@@ -50,19 +65,38 @@ function App() {
     setTodos((prev) => prev.filter((todo) => todo.id !== id));
   };
 
+  const handleSortModeChange = (event) => {
+    const nextMode = event.target.value;
+    setSortMode(nextMode);
+  };
+
   const sortedTodos = useMemo(() => {
-    const direction = sortOrder === 'desc' ? 1 : -1;
-
     return [...todos].sort((a, b) => {
-      const priorityDiff = PRIORITY_RANK[b.priority] - PRIORITY_RANK[a.priority];
-
-      if (priorityDiff !== 0) {
-        return priorityDiff * direction;
+      switch (sortMode) {
+        case 'time-asc':
+          // 时间：旧 → 新
+          return a.id - b.id;
+        case 'priority-desc': {
+          // 优先级：高 → 低（高优先，高在前；相同优先级按时间新 → 旧）
+          const priorityDiff =
+            PRIORITY_RANK[b.priority] - PRIORITY_RANK[a.priority];
+          if (priorityDiff !== 0) return priorityDiff;
+          return b.id - a.id;
+        }
+        case 'priority-asc': {
+          // 优先级：低 → 高（低优先，低在前；相同优先级按时间新 → 旧）
+          const priorityDiff =
+            PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
+          if (priorityDiff !== 0) return priorityDiff;
+          return b.id - a.id;
+        }
+        case 'time-desc':
+        default:
+          // 时间：新 → 旧（默认）
+          return b.id - a.id;
       }
-
-      return (b.id - a.id) * direction;
     });
-  }, [todos, sortOrder]);
+  }, [todos, sortMode]);
 
   return (
     <div className="app-shell">
@@ -108,11 +142,13 @@ function App() {
           <label>
             排序
             <select
-              value={sortOrder}
-              onChange={(event) => setSortOrder(event.target.value)}
+              value={sortMode}
+              onChange={handleSortModeChange}
             >
-              <option value="desc">优先级：高 → 低</option>
-              <option value="asc">优先级：低 → 高</option>
+              <option value="time-desc">时间：新 → 旧（默认）</option>
+              <option value="time-asc">时间：旧 → 新</option>
+              <option value="priority-desc">优先级：高 → 低</option>
+              <option value="priority-asc">优先级：低 → 高</option>
             </select>
           </label>
         </div>
