@@ -17,6 +17,7 @@ import {
   saveSortMode,
   saveTodos,
 } from './storage';
+import FilterBar from './components/FilterBar';
 
 const ADD_CATEGORY_OPTION_VALUE = '__add_category__';
 
@@ -40,6 +41,9 @@ function App() {
   // time-desc | time-asc | priority-desc | priority-asc
   const [sortMode, setSortMode] = useState(() => loadSortMode('time-desc'));
   const [searchText, setSearchText] = useState("");
+  const [filterCategory, setFilterCategory] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterDue, setFilterDue] = useState('all');
   const remindedIdsRef = useRef(new Set());
 
   useEffect(() => {
@@ -258,14 +262,38 @@ function App() {
     });
   }, [todos, sortMode]);
 
+  const filteredTodos = useMemo(() => {
+    return sortedTodos.filter(todo => {
+      if (filterCategory !== 'all' && todo.categoryId !== filterCategory) return false;
+      if (filterStatus === 'completed' && !todo.completed) return false;
+      if (filterStatus === 'uncompleted' && todo.completed) return false;
+      if (filterDue !== 'all') {
+        const now = new Date();
+        const dueDate = todo.dueDate ? new Date(todo.dueDate) : null;
+        if (!dueDate || Number.isNaN(dueDate.getTime())) return false;
+        if (filterDue === 'today') {
+          const y1 = now.getFullYear(), m1 = now.getMonth(), d1 = now.getDate();
+          const y2 = dueDate.getFullYear(), m2 = dueDate.getMonth(), d2 = dueDate.getDate();
+          if (!(y1 === y2 && m1 === m2 && d1 === d2)) return false;
+        } else if (filterDue === 'week') {
+          const diff = dueDate - now;
+          if (diff < 0 || diff > 7*24*60*60*1000) return false;
+        } else if (filterDue === 'overdue') {
+          if (dueDate > now) return false;
+        }
+      }
+      return true;
+    });
+  }, [sortedTodos, filterCategory, filterStatus, filterDue]);
+
   const searchFilteredTodos = useMemo(() => {
-    if (!searchText.trim()) return sortedTodos;
+    if (!searchText.trim()) return filteredTodos;
     const q = searchText.trim().toLowerCase();
-    return sortedTodos.filter((todo) =>
+    return filteredTodos.filter((todo) =>
       todo.title.toLowerCase().includes(q) ||
       (todo.description && todo.description.toLowerCase().includes(q))
     );
-  }, [sortedTodos, searchText]);
+  }, [filteredTodos, searchText]);
 
   return (
     <div className="app-shell">
@@ -340,21 +368,28 @@ function App() {
           <section className="panel list-panel">
             <div className="panel-header list-header">
               <h2>待办列表</h2>
-              <div className="sort-toolbar">
-                <label>
-                  排序
-                  <select
-                    value={sortMode}
-                    onChange={handleSortModeChange}
-                  >
-                    <option value="time-desc">时间：新 → 旧（默认）</option>
-                    <option value="time-asc">时间：旧 → 新</option>
-                    <option value="priority-desc">优先级：高 → 低</option>
-                    <option value="priority-asc">优先级：低 → 高</option>
-                    <option value="due-desc">截止时间：晚 → 早</option>
-                    <option value="due-asc">截止时间：早 → 晚</option>
-                  </select>
-                </label>
+              <div className="filter-bar-wrap" style={{display:'flex',gap:'1.15em',alignItems:'center',flexWrap:'wrap'}}>
+                <FilterBar categories={categories}
+                  filterCategory={filterCategory} setFilterCategory={setFilterCategory}
+                  filterStatus={filterStatus} setFilterStatus={setFilterStatus}
+                  filterDue={filterDue} setFilterDue={setFilterDue}
+                />
+                <div className="sort-toolbar">
+                  <label>
+                    排序
+                    <select
+                      value={sortMode}
+                      onChange={handleSortModeChange}
+                    >
+                      <option value="time-desc">时间：新 → 旧（默认）</option>
+                      <option value="time-asc">时间：旧 → 新</option>
+                      <option value="priority-desc">优先级：高 → 低</option>
+                      <option value="priority-asc">优先级：低 → 高</option>
+                      <option value="due-desc">截止时间：晚 → 早</option>
+                      <option value="due-asc">截止时间：早 → 晚</option>
+                    </select>
+                  </label>
+                </div>
               </div>
             </div>
             <div className="todo-search">
