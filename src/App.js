@@ -136,6 +136,48 @@ function App() {
     setNewCategoryName('');
   };
 
+  const handleRenameCategory = (id, nextName) => {
+    const trimmed = nextName.trim();
+    if (!trimmed) {
+      return false;
+    }
+
+    const duplicate = categories.some(
+      (category) =>
+        category.id !== id &&
+        category.name.trim().toLowerCase() === trimmed.toLowerCase(),
+    );
+
+    if (duplicate) {
+      return false;
+    }
+
+    setCategories((prev) =>
+      prev.map((category) =>
+        category.id === id ? { ...category, name: trimmed } : category,
+      ),
+    );
+    return true;
+  };
+
+  const handleDeleteCategory = (id) => {
+    setCategories((prevCategories) => {
+      const updatedCategories = prevCategories.filter(
+        (category) => category.id !== id,
+      );
+      const fallbackId = updatedCategories[0]?.id ?? '';
+
+      setCategoryId((current) => (current === id ? fallbackId : current));
+      setTodos((prevTodos) =>
+        prevTodos.map((todo) =>
+          todo.categoryId === id ? { ...todo, categoryId: fallbackId } : todo,
+        ),
+      );
+
+      return updatedCategories;
+    });
+  };
+
   const sortedTodos = useMemo(() => {
     return [...todos].sort((a, b) => {
       switch (sortMode) {
@@ -168,87 +210,100 @@ function App() {
     <div className="app-shell">
       <div className="todo-card">
         <h1>我的待办清单</h1>
-        <form onSubmit={handleAddTodo} className="todo-form">
-          <label>
-            标题 *
-            <input
-              type="text"
-              placeholder="输入待办标题"
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              required
-            />
-          </label>
-          <label>
-            描述
-            <textarea
-              placeholder="可选：描述你的待办事项"
-              value={description}
-              onChange={(event) => setDescription(event.target.value)}
-              rows={3}
-            />
-          </label>
-          <label>
-            优先级 *
-            <select
-              value={priority}
-              onChange={(event) => setPriority(event.target.value)}
-            >
-              {PRIORITY_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            分类 *
-            <select
-              value={categoryId}
-              onChange={handleCategorySelectChange}
-              required
-            >
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-              <option value={ADD_CATEGORY_OPTION_VALUE}>+ 新增分类...</option>
-            </select>
-          </label>
-          <button type="submit">添加待办</button>
-        </form>
+        <div className="todo-layout">
+          <section className="panel details-panel">
+            <div className="panel-header">
+              <h2>添加事项</h2>
+              <p>填写事项信息并保存到右侧列表。</p>
+            </div>
+            <form onSubmit={handleAddTodo} className="todo-form">
+              <label>
+                标题 *
+                <input
+                  type="text"
+                  placeholder="输入待办标题"
+                  value={title}
+                  onChange={(event) => setTitle(event.target.value)}
+                  required
+                />
+              </label>
+              <label>
+                描述
+                <textarea
+                  placeholder="可选：描述你的待办事项"
+                  value={description}
+                  onChange={(event) => setDescription(event.target.value)}
+                  rows={3}
+                />
+              </label>
+              <label>
+                优先级 *
+                <select
+                  value={priority}
+                  onChange={(event) => setPriority(event.target.value)}
+                >
+                  {PRIORITY_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                分类 *
+                <select
+                  value={categoryId}
+                  onChange={handleCategorySelectChange}
+                  required
+                >
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
+                  <option value={ADD_CATEGORY_OPTION_VALUE}>+ 新增分类...</option>
+                </select>
+              </label>
+              <button type="submit">添加待办</button>
+            </form>
+          </section>
 
-        <div className="sort-toolbar">
-          <label>
-            排序
-            <select
-              value={sortMode}
-              onChange={handleSortModeChange}
-            >
-              <option value="time-desc">时间：新 → 旧（默认）</option>
-              <option value="time-asc">时间：旧 → 新</option>
-              <option value="priority-desc">优先级：高 → 低</option>
-              <option value="priority-asc">优先级：低 → 高</option>
-            </select>
-          </label>
+          <section className="panel list-panel">
+            <div className="panel-header list-header">
+              <h2>待办列表</h2>
+              <div className="sort-toolbar">
+                <label>
+                  排序
+                  <select
+                    value={sortMode}
+                    onChange={handleSortModeChange}
+                  >
+                    <option value="time-desc">时间：新 → 旧（默认）</option>
+                    <option value="time-asc">时间：旧 → 新</option>
+                    <option value="priority-desc">优先级：高 → 低</option>
+                    <option value="priority-asc">优先级：低 → 高</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <section className="todo-list">
+              {sortedTodos.length === 0 ? (
+                <p className="empty-hint">暂无待办，开始添加吧！</p>
+              ) : (
+                sortedTodos.map((todo) => (
+                  <TodoItem
+                    key={todo.id}
+                    todo={todo}
+                    categoryLabel={categoryMap[todo.categoryId]}
+                    onToggle={toggleTodo}
+                    onDelete={deleteTodo}
+                  />
+                ))
+              )}
+            </section>
+          </section>
         </div>
-
-        <section className="todo-list">
-          {sortedTodos.length === 0 ? (
-            <p className="empty-hint">暂无待办，开始添加吧！</p>
-          ) : (
-            sortedTodos.map((todo) => (
-              <TodoItem
-                key={todo.id}
-                todo={todo}
-                categoryLabel={categoryMap[todo.categoryId]}
-                onToggle={toggleTodo}
-                onDelete={deleteTodo}
-              />
-            ))
-          )}
-        </section>
       </div>
       <CategoryManager
         isOpen={isCategoryModalOpen}
@@ -256,6 +311,8 @@ function App() {
         newCategoryName={newCategoryName}
         onNewCategoryNameChange={setNewCategoryName}
         onAddCategory={handleAddCategory}
+        onEditCategory={handleRenameCategory}
+        onDeleteCategory={handleDeleteCategory}
         onClose={closeCategoryModal}
       />
     </div>
