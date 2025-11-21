@@ -39,6 +39,7 @@ function App() {
   const [isCategoryModalOpen, setCategoryModalOpen] = useState(false);
   // time-desc | time-asc | priority-desc | priority-asc
   const [sortMode, setSortMode] = useState(() => loadSortMode('time-desc'));
+  const [searchText, setSearchText] = useState("");
 
   useEffect(() => {
     saveTodos(todos);
@@ -233,6 +234,15 @@ function App() {
     });
   }, [todos, sortMode]);
 
+  const searchFilteredTodos = useMemo(() => {
+    if (!searchText.trim()) return sortedTodos;
+    const q = searchText.trim().toLowerCase();
+    return sortedTodos.filter((todo) =>
+      todo.title.toLowerCase().includes(q) ||
+      (todo.description && todo.description.toLowerCase().includes(q))
+    );
+  }, [sortedTodos, searchText]);
+
   return (
     <div className="app-shell">
       <div className="todo-card">
@@ -323,12 +333,20 @@ function App() {
                 </label>
               </div>
             </div>
-
+            <div className="todo-search">
+              <input
+                type="text"
+                placeholder="搜索标题或描述..."
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+                autoComplete="off"
+              />
+            </div>
             <section className="todo-list">
-              {sortedTodos.length === 0 ? (
-                <p className="empty-hint">暂无待办，开始添加吧！</p>
+              {searchFilteredTodos.length === 0 ? (
+                <p className="empty-hint">暂无符合条件的待办</p>
               ) : (
-                sortedTodos.map((todo) => (
+                searchFilteredTodos.map((todo) => (
                   <TodoItem
                     key={todo.id}
                     todo={todo}
