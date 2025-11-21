@@ -1,5 +1,6 @@
 const TODOS_STORAGE_KEY = 'todo-list-items';
 const SORT_MODE_STORAGE_KEY = 'todo-list-sort-mode';
+const CATEGORIES_STORAGE_KEY = 'todo-list-categories';
 
 function isStorageAvailable() {
   if (typeof window === 'undefined' || !window.localStorage) {
@@ -63,6 +64,42 @@ export function saveSortMode(mode) {
 
   try {
     window.localStorage.setItem(SORT_MODE_STORAGE_KEY, mode);
+  } catch {
+    // ignore write errors
+  }
+}
+
+export function loadCategories(defaultCategories = []) {
+  if (!isStorageAvailable()) {
+    return defaultCategories;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(CATEGORIES_STORAGE_KEY);
+    if (!raw) return defaultCategories;
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return defaultCategories;
+
+    return parsed
+      .map((category) =>
+        category && typeof category.id === 'string' && typeof category.name === 'string'
+          ? category
+          : null,
+      )
+      .filter(Boolean);
+  } catch {
+    return defaultCategories;
+  }
+}
+
+export function saveCategories(categories) {
+  if (!isStorageAvailable()) {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(CATEGORIES_STORAGE_KEY, JSON.stringify(categories));
   } catch {
     // ignore write errors
   }

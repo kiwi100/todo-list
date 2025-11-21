@@ -1,6 +1,6 @@
 import { PRIORITY_LABEL } from '../constants';
 
-function TodoItem({ todo, onToggle, onDelete }) {
+function TodoItem({ todo, categoryLabel, onToggle, onDelete }) {
   return (
     <article
       className={`todo-item ${todo.completed ? 'completed' : ''}`}
@@ -11,6 +11,9 @@ function TodoItem({ todo, onToggle, onDelete }) {
           <h2>{todo.title}</h2>
           <span className={`priority-chip priority-${todo.priority}`}>
             {PRIORITY_LABEL[todo.priority] ?? '未知'}
+          </span>
+          <span className="category-pill category-pill--outlined">
+            {categoryLabel || '未分类'}
           </span>
         </div>
         {todo.description && <p>{todo.description}</p>}

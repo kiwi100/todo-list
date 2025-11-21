@@ -18,3 +18,12 @@ export const DEFAULT_PRIORITY =
   PRIORITY_OPTIONS.find((option) => option.value === 'medium')?.value ||
   PRIORITY_OPTIONS[0].value;
 
+export const DEFAULT_CATEGORIES = [
+  { id: 'work', name: '工作' },
+  { id: 'study', name: '学习' },
+  { id: 'life', name: '生活' },
+];
+
+export const DEFAULT_CATEGORY_ID = DEFAULT_CATEGORIES[0]?.id || '';
+
+

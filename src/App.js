@@ -3,21 +3,34 @@ import './App.css';
 import TodoItem from './components/TodoItem';
 import {
   DEFAULT_PRIORITY,
+  DEFAULT_CATEGORIES,
+  DEFAULT_CATEGORY_ID,
   PRIORITY_OPTIONS,
   PRIORITY_RANK,
 } from './constants';
+import CategoryManager from './components/CategoryManager';
 import {
+  loadCategories,
   loadSortMode,
   loadTodos,
+  saveCategories,
   saveSortMode,
   saveTodos,
 } from './storage';
+
+const ADD_CATEGORY_OPTION_VALUE = '__add_category__';
 
 function App() {
   const [todos, setTodos] = useState(() => loadTodos());
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState(DEFAULT_PRIORITY);
+  const [categories, setCategories] = useState(() =>
+    loadCategories(DEFAULT_CATEGORIES),
+  );
+  const [categoryId, setCategoryId] = useState('');
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [isCategoryModalOpen, setCategoryModalOpen] = useState(false);
   // time-desc | time-asc | priority-desc | priority-asc
   const [sortMode, setSortMode] = useState(() => loadSortMode('time-desc'));
 
@@ -29,13 +42,36 @@ function App() {
     saveSortMode(sortMode);
   }, [sortMode]);
 
+  useEffect(() => {
+    saveCategories(categories);
+  }, [categories]);
+
+  useEffect(() => {
+    if (!categoryId && categories.length > 0) {
+      setCategoryId(categories[0].id ?? DEFAULT_CATEGORY_ID);
+    }
+  }, [categories, categoryId]);
+
+  const handleCategorySelectChange = (event) => {
+    const value = event.target.value;
+    if (value === ADD_CATEGORY_OPTION_VALUE) {
+      setCategoryModalOpen(true);
+      return;
+    }
+    setCategoryId(value);
+  };
+
+  const closeCategoryModal = () => {
+    setCategoryModalOpen(false);
+  };
+
   const handleAddTodo = (event) => {
     event.preventDefault();
 
     const trimmedTitle = title.trim();
     const trimmedDescription = description.trim();
 
-    if (!trimmedTitle) {
+    if (!trimmedTitle || !categoryId) {
       return;
     }
 
@@ -45,6 +81,7 @@ function App() {
       description: trimmedDescription,
       completed: false,
       priority,
+      categoryId,
     };
 
     setTodos((prev) => [newTodo, ...prev]);
@@ -68,6 +105,35 @@ function App() {
   const handleSortModeChange = (event) => {
     const nextMode = event.target.value;
     setSortMode(nextMode);
+  };
+
+  const categoryMap = useMemo(() => {
+    return categories.reduce((result, category) => {
+      result[category.id] = category.name;
+      return result;
+    }, {});
+  }, [categories]);
+
+  const handleAddCategory = (event) => {
+    event.preventDefault();
+    const trimmedName = newCategoryName.trim();
+    if (!trimmedName) {
+      return;
+    }
+
+    if (categories.some((category) => category.name === trimmedName)) {
+      setNewCategoryName('');
+      return;
+    }
+
+    const newCategory = {
+      id: `cat-${Date.now()}`,
+      name: trimmedName,
+    };
+
+    setCategories((prev) => [...prev, newCategory]);
+    setCategoryId(newCategory.id);
+    setNewCategoryName('');
   };
 
   const sortedTodos = useMemo(() => {
@@ -135,6 +201,21 @@ function App() {
               ))}
             </select>
           </label>
+          <label>
+            分类 *
+            <select
+              value={categoryId}
+              onChange={handleCategorySelectChange}
+              required
+            >
+              {categories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+              <option value={ADD_CATEGORY_OPTION_VALUE}>+ 新增分类...</option>
+            </select>
+          </label>
           <button type="submit">添加待办</button>
         </form>
 
@@ -161,6 +242,7 @@ function App() {
               <TodoItem
                 key={todo.id}
                 todo={todo}
+                categoryLabel={categoryMap[todo.categoryId]}
                 onToggle={toggleTodo}
                 onDelete={deleteTodo}
               />
@@ -168,6 +250,14 @@ function App() {
           )}
         </section>
       </div>
+      <CategoryManager
+        isOpen={isCategoryModalOpen}
+        categories={categories}
+        newCategoryName={newCategoryName}
+        onNewCategoryNameChange={setNewCategoryName}
+        onAddCategory={handleAddCategory}
+        onClose={closeCategoryModal}
+      />
     </div>
   );
 }
