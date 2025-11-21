@@ -25,6 +25,12 @@ function App() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [priority, setPriority] = useState(DEFAULT_PRIORITY);
+  const getDefaultDueDate = () => {
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    return now.toISOString().slice(0, 16);
+  };
+  const [dueDate, setDueDate] = useState(getDefaultDueDate);
   const [categories, setCategories] = useState(() =>
     loadCategories(DEFAULT_CATEGORIES),
   );
@@ -70,6 +76,7 @@ function App() {
 
     const trimmedTitle = title.trim();
     const trimmedDescription = description.trim();
+    const finalDueDate = dueDate || getDefaultDueDate();
 
     if (!trimmedTitle || !categoryId) {
       return;
@@ -82,12 +89,14 @@ function App() {
       completed: false,
       priority,
       categoryId,
+      dueDate: finalDueDate,
     };
 
     setTodos((prev) => [newTodo, ...prev]);
     setTitle('');
     setDescription('');
     setPriority(DEFAULT_PRIORITY);
+    setDueDate(getDefaultDueDate());
   };
 
   const toggleTodo = (id) => {
@@ -179,6 +188,13 @@ function App() {
     });
   };
 
+  const getDueTime = (todo) => {
+    if (todo.dueDate) {
+      return new Date(todo.dueDate).getTime();
+    }
+    return todo.id;
+  };
+
   const sortedTodos = useMemo(() => {
     return [...todos].sort((a, b) => {
       switch (sortMode) {
@@ -197,6 +213,16 @@ function App() {
           const priorityDiff =
             PRIORITY_RANK[a.priority] - PRIORITY_RANK[b.priority];
           if (priorityDiff !== 0) return priorityDiff;
+          return b.id - a.id;
+        }
+        case 'due-desc': {
+          const diff = getDueTime(b) - getDueTime(a);
+          if (diff !== 0) return diff;
+          return b.id - a.id;
+        }
+        case 'due-asc': {
+          const diff = getDueTime(a) - getDueTime(b);
+          if (diff !== 0) return diff;
           return b.id - a.id;
         }
         case 'time-desc':
@@ -265,6 +291,14 @@ function App() {
                   <option value={ADD_CATEGORY_OPTION_VALUE}>+ 新增分类...</option>
                 </select>
               </label>
+              <label>
+                截止日期
+                <input
+                  type="datetime-local"
+                  value={dueDate}
+                  onChange={(event) => setDueDate(event.target.value)}
+                />
+              </label>
               <button type="submit">添加待办</button>
             </form>
           </section>
@@ -283,6 +317,8 @@ function App() {
                     <option value="time-asc">时间：旧 → 新</option>
                     <option value="priority-desc">优先级：高 → 低</option>
                     <option value="priority-asc">优先级：低 → 高</option>
+                    <option value="due-desc">截止时间：晚 → 早</option>
+                    <option value="due-asc">截止时间：早 → 晚</option>
                   </select>
                 </label>
               </div>

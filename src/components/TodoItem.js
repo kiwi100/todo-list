@@ -1,5 +1,16 @@
 import { PRIORITY_LABEL } from '../constants';
 
+const formatDueDate = (value) => {
+  if (!value) {
+    return '无截止时间';
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '无截止时间';
+  }
+  return date.toLocaleString();
+};
+
 function TodoItem({ todo, categoryLabel, onToggle, onDelete }) {
   return (
     <article
@@ -17,6 +28,9 @@ function TodoItem({ todo, categoryLabel, onToggle, onDelete }) {
           </span>
         </div>
         {todo.description && <p>{todo.description}</p>}
+        <p className="todo-meta">
+          截止：<span>{formatDueDate(todo.dueDate)}</span>
+        </p>
       </div>
       <div className="todo-actions">
         <button
