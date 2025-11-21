@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import './App.css';
 import TodoItem from './components/TodoItem';
 import {
@@ -40,6 +40,7 @@ function App() {
   // time-desc | time-asc | priority-desc | priority-asc
   const [sortMode, setSortMode] = useState(() => loadSortMode('time-desc'));
   const [searchText, setSearchText] = useState("");
+  const remindedIdsRef = useRef(new Set());
 
   useEffect(() => {
     saveTodos(todos);
@@ -58,6 +59,44 @@ function App() {
       setCategoryId(categories[0].id ?? DEFAULT_CATEGORY_ID);
     }
   }, [categories, categoryId]);
+
+  useEffect(() => {
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
+
+  function showDeadlineNotification(todo) {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification(`任务将截止: ${todo.title}`, {
+        body: `截止时间：${new Date(todo.dueDate).toLocaleString()}`,
+        icon: "/favicon.ico",
+      });
+    } else {
+      window.alert(`【任务提醒】\n待办『${todo.title}』将于${new Date(todo.dueDate).toLocaleString()}截止！`);
+    }
+  }
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = Date.now();
+      todos.forEach(todo => {
+        if (
+          !todo.completed &&
+          todo.dueDate &&
+          !remindedIdsRef.current.has(todo.id)
+        ) {
+          const due = new Date(todo.dueDate).getTime();
+          const diff = due - now;
+          if (diff <= 5*60*1000 && diff > 0) {
+            showDeadlineNotification(todo);
+            remindedIdsRef.current.add(todo.id);
+          }
+        }
+      });
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [todos]);
 
   const handleCategorySelectChange = (event) => {
     const value = event.target.value;
