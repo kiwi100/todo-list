@@ -374,11 +374,12 @@
   border: 1px solid #ececf5;
   border-radius: 12px;
   padding: 1rem 1.2rem;
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1.25rem;
+  align-items: start;
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+  align-items: stretch;
 }
 
 .todo-item.completed {
@@ -403,6 +404,9 @@
   margin: 0.4rem 0 0;
   color: #4b5563;
   font-size: 0.95rem;
+  max-height: 120px;
+  overflow-y: auto;
+  padding-right: 0.35rem;
 }
 
 .todo-meta {
@@ -426,6 +430,9 @@
   display: flex;
   gap: 0.6rem;
   flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center; /* 确保按钮垂直居中 */
+  align-self: stretch; /* 使容器与父容器等高 */
 }
 
 .todo-actions button {
@@ -514,11 +521,11 @@
   }
 
   .todo-item {
-    flex-direction: column;
-    align-items: flex-start;
+    grid-template-columns: 1fr;
   }
 
   .todo-actions {
     width: 100%;
+    justify-content: flex-start;
   }
 }
