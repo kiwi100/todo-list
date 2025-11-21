@@ -13,32 +13,37 @@ function CategoryManager({
   const [editingId, setEditingId] = useState(null);
   const [editingName, setEditingName] = useState('');
   const [editingError, setEditingError] = useState('');
+  const [pendingDeleteId, setPendingDeleteId] = useState(null);
 
   if (!isOpen) {
     return null;
   }
 
-  const resetEditingState = () => {
+  const resetInlineState = () => {
     setEditingId(null);
     setEditingName('');
     setEditingError('');
+    setPendingDeleteId(null);
   };
 
   const handleOverlayClick = (event) => {
     if (event.target === event.currentTarget) {
       onClose();
-      resetEditingState();
+      resetInlineState();
     }
   };
 
   const startEditing = (category) => {
+    setPendingDeleteId(null);
     setEditingId(category.id);
     setEditingName(category.name);
     setEditingError('');
   };
 
   const cancelEditing = () => {
-    resetEditingState();
+    setEditingId(null);
+    setEditingName('');
+    setEditingError('');
   };
 
   const submitEditing = () => {
@@ -53,18 +58,27 @@ function CategoryManager({
       setEditingError('分类名称已存在或无效');
       return;
     }
-    resetEditingState();
+    setEditingId(null);
+    setEditingName('');
+    setEditingError('');
   };
 
-  const handleDelete = (id) => {
-    if (
-      window.confirm('删除后使用该分类的待办会显示为“未分类”，确认删除？')
-    ) {
-      onDeleteCategory(id);
-      if (editingId === id) {
-        resetEditingState();
-      }
+  const requestDelete = (id) => {
+    setPendingDeleteId(id);
+    if (editingId === id) {
+      setEditingId(null);
+      setEditingName('');
+      setEditingError('');
     }
+  };
+
+  const cancelDeleteRequest = () => {
+    setPendingDeleteId(null);
+  };
+
+  const confirmDelete = (id) => {
+    onDeleteCategory(id);
+    setPendingDeleteId(null);
   };
 
   return (
@@ -81,7 +95,7 @@ function CategoryManager({
           aria-label="关闭分类弹窗"
           onClick={() => {
             onClose();
-            resetEditingState();
+            resetInlineState();
           }}
         >
           ×
@@ -122,6 +136,29 @@ function CategoryManager({
                         <span className="category-error">{editingError}</span>
                       )}
                     </>
+                  ) : pendingDeleteId === category.id ? (
+                    <div className="category-delete-confirm">
+                      <p>
+                        删除后，所有属于「{category.name}」的待办都会标记为“未分类”。
+                        确认继续吗？
+                      </p>
+                      <div className="category-row-actions">
+                        <button
+                          type="button"
+                          className="danger-link"
+                          onClick={() => confirmDelete(category.id)}
+                        >
+                          确认删除
+                        </button>
+                        <button
+                          type="button"
+                          className="link-button"
+                          onClick={cancelDeleteRequest}
+                        >
+                          取消
+                        </button>
+                      </div>
+                    </div>
                   ) : (
                     <>
                       <span className="category-pill">{category.name}</span>
@@ -136,7 +173,7 @@ function CategoryManager({
                         <button
                           type="button"
                           className="danger-link"
-                          onClick={() => handleDelete(category.id)}
+                          onClick={() => requestDelete(category.id)}
                         >
                           删除
                         </button>
