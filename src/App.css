@@ -91,6 +91,11 @@
   color: #3a3a55;
 }
 
+.todo-form label .required-mark {
+  color: #ef4444;
+  font-weight: 700;
+}
+
 .todo-form input,
 .todo-form textarea,
 .todo-form select {

@@ -340,7 +340,9 @@ function App() {
             </div>
             <form onSubmit={handleAddTodo} className="todo-form">
               <label>
-                标题 *
+                <p>
+                标题 <span className="required-mark">*</span>
+                </p>
                 <input
                   type="text"
                   placeholder="输入待办标题"
@@ -359,7 +361,7 @@ function App() {
                 />
               </label>
               <label>
-                优先级 *
+                <p>优先级 <span className="required-mark">*</span></p>
                 <select
                   value={priority}
                   onChange={(event) => setPriority(event.target.value)}
@@ -372,7 +374,9 @@ function App() {
                 </select>
               </label>
               <label>
-                分类 *
+                <p>
+                分类 <span className="required-mark">*</span>
+                </p>
                 <select
                   value={categoryId}
                   onChange={handleCategorySelectChange}
