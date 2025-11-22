@@ -388,8 +388,8 @@ function App() {
                   filterDue={filterDue} setFilterDue={setFilterDue}
                 />
                 <div className="sort-toolbar">
-                  <label>
-                    排序
+            
+                    
                     <select
                       value={sortMode}
                       onChange={handleSortModeChange}
@@ -401,7 +401,6 @@ function App() {
                       <option value="due-desc">截止时间：晚 → 早</option>
                       <option value="due-asc">截止时间：早 → 晚</option>
                     </select>
-                  </label>
                 </div>
               </div>
             </div>

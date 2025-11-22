@@ -336,22 +336,43 @@
 }
 
 .sort-toolbar {
-  margin-top: 0;
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
 }
 
 .sort-toolbar label {
   display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
+  align-items: center;
+  gap: 0.5rem;
   font-weight: 600;
   color: #3a3a55;
+  font-size: 0.95rem;
+  white-space: nowrap;
 }
 
 .sort-toolbar select {
   min-width: 180px;
+  border: 1px solid #d7d7f3;
+  border-radius: 7px;
+  padding: 0.45em 1.3em 0.45em 0.7em;
+  font-size: 1em;
+  font-family: inherit;
+  background: #fff;
+  color: #1e1e2f;
   cursor: pointer;
+  outline: none;
+  transition: border 0.16s ease, box-shadow 0.16s ease;
+}
+
+.sort-toolbar select:hover {
+  border-color: #c4b5fd;
+}
+
+.sort-toolbar select:focus {
+  border-color: #7c3aed;
+  box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.08);
 }
 
 .todo-list {
@@ -625,6 +646,15 @@
   .sort-toolbar {
     width: 100%;
     justify-content: flex-start;
+  }
+
+  .sort-toolbar label {
+    flex-direction: row;
+  }
+
+  .sort-toolbar select {
+    flex: 1;
+    min-width: 0;
   }
 
   .todo-item {
