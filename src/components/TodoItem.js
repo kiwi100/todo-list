@@ -11,7 +11,7 @@ const formatDueDate = (value) => {
   return date.toLocaleString();
 };
 
-function TodoItem({ todo, categoryLabel, onToggle, onDelete }) {
+function TodoItem({ todo, categoryLabel, onToggle, onDelete, isRemoving }) {
   const now = Date.now();
   let expired = false;
   if (todo.dueDate && !todo.completed) {
@@ -20,7 +20,7 @@ function TodoItem({ todo, categoryLabel, onToggle, onDelete }) {
   }
   return (
     <article
-      className={`todo-item${todo.completed ? ' completed' : ''}${expired ? ' expired' : ''}`}
+      className={`todo-item${todo.completed ? ' completed' : ''}${expired ? ' expired' : ''}${isRemoving ? ' removing' : ''}`}
       data-priority={todo.priority}
     >
       <div className="todo-content">

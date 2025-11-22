@@ -380,6 +380,9 @@
   align-items: start;
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
   align-items: stretch;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: todo-enter 0.35s ease forwards;
 }
 
 .todo-item.expired {
@@ -469,6 +472,38 @@
 .todo-actions button.delete {
   background-color: #ef4444;
   color: #fff;
+}
+
+.todo-item.removing {
+  animation: todo-exit 0.25s ease forwards;
+}
+
+.todo-item.completed {
+  border-color: #c6f6d5;
+  background-color: #f0fff4;
+  transition: background-color 0.35s ease, border-color 0.35s ease;
+}
+
+@keyframes todo-enter {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes todo-exit {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
 }
 
 .todo-actions button:hover {

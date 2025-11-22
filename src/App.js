@@ -41,6 +41,7 @@ function App() {
   // time-desc | time-asc | priority-desc | priority-asc
   const [sortMode, setSortMode] = useState(() => loadSortMode('time-desc'));
   const [searchText, setSearchText] = useState("");
+  const [removingIds, setRemovingIds] = useState(new Set());
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterDue, setFilterDue] = useState('all');
@@ -137,7 +138,19 @@ function App() {
   };
 
   const deleteTodo = (id) => {
-    setTodos((prev) => prev.filter((todo) => todo.id !== id));
+    setRemovingIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+    setTimeout(() => {
+      setTodos((prev) => prev.filter((todo) => todo.id !== id));
+      setRemovingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }, 250);
   };
 
   const handleSortModeChange = (event) => {
@@ -410,6 +423,7 @@ function App() {
                     key={todo.id}
                     todo={todo}
                     categoryLabel={categoryMap[todo.categoryId]}
+                    isRemoving={removingIds.has(todo.id)}
                     onToggle={toggleTodo}
                     onDelete={deleteTodo}
                   />
