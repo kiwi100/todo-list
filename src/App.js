@@ -9,6 +9,7 @@ import {
   PRIORITY_RANK,
 } from './constants';
 import CategoryManager from './components/CategoryManager';
+import ConfirmDialog from './components/ConfirmDialog';
 import {
   loadCategories,
   loadSortMode,
@@ -45,6 +46,8 @@ function App() {
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterDue, setFilterDue] = useState('all');
+  const [isDeleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [todoToDelete, setTodoToDelete] = useState(null);
   const remindedIdsRef = useRef(new Set());
 
   useEffect(() => {
@@ -137,7 +140,16 @@ function App() {
     );
   };
 
-  const deleteTodo = (id) => {
+  const requestDeleteTodo = (id) => {
+    const todo = todos.find(t => t.id === id);
+    setTodoToDelete({ id, title: todo?.title || '' });
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteTodo = () => {
+    if (!todoToDelete) return;
+    
+    const id = todoToDelete.id;
     setRemovingIds((prev) => {
       const next = new Set(prev);
       next.add(id);
@@ -151,6 +163,14 @@ function App() {
         return next;
       });
     }, 250);
+    
+    setDeleteDialogOpen(false);
+    setTodoToDelete(null);
+  };
+
+  const cancelDeleteTodo = () => {
+    setDeleteDialogOpen(false);
+    setTodoToDelete(null);
   };
 
   const handleSortModeChange = (event) => {
@@ -424,7 +444,7 @@ function App() {
                     categoryLabel={categoryMap[todo.categoryId]}
                     isRemoving={removingIds.has(todo.id)}
                     onToggle={toggleTodo}
-                    onDelete={deleteTodo}
+                    onDelete={requestDeleteTodo}
                   />
                 ))
               )}
@@ -441,6 +461,15 @@ function App() {
         onEditCategory={handleRenameCategory}
         onDeleteCategory={handleDeleteCategory}
         onClose={closeCategoryModal}
+      />
+      <ConfirmDialog
+        isOpen={isDeleteDialogOpen}
+        title="确认删除"
+        message={todoToDelete ? `确定要删除待办事项「${todoToDelete.title}」吗？此操作不可撤销。` : '确定要删除此待办事项吗？'}
+        confirmText="删除"
+        cancelText="取消"
+        onConfirm={confirmDeleteTodo}
+        onCancel={cancelDeleteTodo}
       />
     </div>
   );
